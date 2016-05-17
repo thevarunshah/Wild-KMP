@@ -29,12 +29,21 @@ public class KMP {
 							//reset match
 							matchLength = 0;
 						}
+						//edge case for extra match on wildcard
+						else if(pattern.charAt(matchLength-1) == '*'){
+							matchLength++;
+						}
 					}
 					break;
 				}
 				
 				matchLength = prefixTable.table[matchLength-1]; //fall-back
 				reset = true;
+			}
+			
+			//edge case for extra match after the fall-back
+			if(reset && pattern.charAt(matchLength) == text.charAt(i-1)){
+				matchLength++;
 			}
 			
 			//match or wildcard
