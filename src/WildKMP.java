@@ -1,7 +1,22 @@
 import java.util.Scanner;
 
-public class KMP {
+/**
+ * 
+ * A modified version of the original Knuth-Morris-Pratt substring search algorithm which allows wildcards.
+ * 
+ * @author Varun Shah
+ *
+ */
+public class WildKMP {
 
+	/**
+	 * Given some text and a pattern, it searches for the first instance of the pattern in the text.<br>
+	 * An asterisk (*) in the pattern tells the algorithm to match on any character at that location in the text.
+	 * 
+	 * @param text The text to be searched
+	 * @param pattern The pattern to search for in the text
+	 * @return The starting index of the pattern in the text. If not found, -1 is returned.  
+	 */
 	public static int search(String text, String pattern){
 		
 		int t = text.length();
@@ -12,7 +27,7 @@ public class KMP {
 		}
 		
 		//create dfa
-		DFA prefixTable = new DFA(pattern);
+		int[] prefixTable = getDFA(pattern);
 		
 		int matchLength = 0;
 		for(int i = 0; i < t; i++){
@@ -24,7 +39,7 @@ public class KMP {
 				if(pattern.charAt(matchLength) == '*'){
 					//loop-back with KMP - double check already matched pattern
 					if(matchLength > 0 && reset){
-						int kmpValue = KMP.search(text.substring(i-matchLength, i), pattern.substring(0, matchLength));
+						int kmpValue = WildKMP.search(text.substring(i-matchLength, i), pattern.substring(0, matchLength));
 						if(kmpValue != 0){
 							//reset match
 							matchLength = 0;
@@ -37,7 +52,7 @@ public class KMP {
 					break;
 				}
 				
-				matchLength = prefixTable.table[matchLength-1]; //fall-back
+				matchLength = prefixTable[matchLength-1]; //fall-back
 				reset = true;
 			}
 			
@@ -61,6 +76,36 @@ public class KMP {
 		return -1;
 	}
 	
+	/**
+	 * Creates the DFA for the KMP algorithm.
+	 * 
+	 * @param pattern The pattern which is being searched in the text 
+	 * @return The DFA.
+	 */
+	private static int[] getDFA(String pattern){
+		
+		int p = pattern.length();
+		int[] dfa = new int[p];
+		dfa[0] = 0;
+		int longestPrefixIndex = 0;
+		
+		for(int i = 2; i < p; i++){
+			
+			//back-track
+			while(longestPrefixIndex > 0 && pattern.charAt(longestPrefixIndex+1) != pattern.charAt(i)){
+				longestPrefixIndex = dfa[longestPrefixIndex];
+			}
+			
+			//match
+			if(pattern.charAt(longestPrefixIndex+1) == pattern.charAt(i)){
+				longestPrefixIndex++;
+			}
+			dfa[i] = longestPrefixIndex;
+		}
+		
+		return dfa;
+	}
+	
 	public static void main(String[] args){
 		
 		Scanner sc = new Scanner(System.in);
@@ -70,7 +115,7 @@ public class KMP {
 		String pattern = sc.nextLine();
 		sc.close();
 		
-		int index = KMP.search(text, pattern);
+		int index = WildKMP.search(text, pattern);
 		if(index != -1){
 			System.out.println(index);
 		}
